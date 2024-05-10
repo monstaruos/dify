@@ -1,0 +1,21 @@
+version: '3'
+
+networks:
+  default:
+    external: true
+    name: dify-middleware
+
+services:
+  web:
+    image: nonroot-nodejs-${USERID:?set this like USERID=$$(id -u)}
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+      args:
+        - userid=${USERID}
+    volumes:
+      - .:/home/developer/app
+    ports:
+      - "3000:3000"
+    working_dir: /home/developer/app
+    command: bash -l -c "npm run start"
