@@ -1,4 +1,9 @@
 version: '3'
+
+networks:
+  default:
+    name: dify-middleware
+
 services:
   # The postgres database.
   db:
