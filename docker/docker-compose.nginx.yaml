@@ -1,0 +1,18 @@
+version: '3'
+
+networks:
+  default:
+    external: true
+    name: dify-middleware
+
+services:
+  nginx:
+    image: nginx:1.25.5-bookworm
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/proxy.conf:/etc/nginx/proxy.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      #- ./nginx/ssl:/etc/ssl
+    ports:
+      - "80:80"
+      - "443:443"
