@@ -459,6 +459,10 @@ services:
     volumes:
       - ./squid/squid.conf:/etc/squid/squid.conf
       - ./squid/htdigest:/etc/squid/htdigest
+      - ./squid/util/bin:/root/bin
+      - ./squid/entrypoint.sh:/usr/local/bin/entrypoint.sh
+    depends_on:
+      - nginx
     ports:
       - "3128:3128"
 
@@ -471,16 +475,11 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/proxy.conf:/etc/nginx/proxy.conf
       - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/util/bin:/root/bin
-      - ./nginx/entrypoint.d/90-renew-ipv4-of-squid.sh:/docker-entrypoint.d/90-renew-ipv4-of-squid.sh
-      #- ./nginx/ssl:/etc/ssl
+      - ./nginx/entrypoint.d/90-renew-ipv4-of-myself.sh:/docker-entrypoint.d/90-renew-ipv4-of-myself.sh
+      - /etc/letsencrypt:/etc/letsencrypt
     depends_on:
       - api
       - web
-      - squid
-    ports:
-      - "80:80"
-      #- "443:443"
 
 
 networks:
