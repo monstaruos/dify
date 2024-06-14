@@ -1,11 +1,15 @@
 import json
 from enum import Enum
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
+from core.workflow.entities.variable_entities import GlobalVariable
 from extensions.ext_database import db
 from libs import helper
 from models import StringUUID
 from models.account import Account
+
+if TYPE_CHECKING:
+    from models.model import AppMode, Message
 
 
 class CreatedByRole(Enum):
@@ -108,6 +112,7 @@ class Workflow(db.Model):
     version = db.Column(db.String(255), nullable=False)
     graph = db.Column(db.Text)
     features = db.Column(db.Text)
+    global_variables = db.Column(db.Text, nullable=False, default='{}')
     created_by = db.Column(StringUUID, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, server_default=db.text('CURRENT_TIMESTAMP(0)'))
     updated_by = db.Column(StringUUID)
@@ -135,7 +140,7 @@ class Workflow(db.Model):
             return []
 
         graph_dict = self.graph_dict
-        if 'nodes' not in graph_dict:
+        if not graph_dict or 'nodes' not in graph_dict:
             return []
 
         start_node = next((node for node in graph_dict['nodes'] if node['data']['type'] == 'start'), None)
@@ -176,6 +181,55 @@ class Workflow(db.Model):
         return db.session.query(WorkflowToolProvider).filter(
             WorkflowToolProvider.app_id == self.app_id
         ).first() is not None
+
+    @property
+    def global_variables_dict(self) -> dict[str, GlobalVariable]:
+        """
+        Converts the global_variables attribute from JSON to a dictionary of GlobalVariable objects.
+
+        Returns:
+            A dictionary containing the converted global variables, where the keys are the variable names
+            and the values are instances of the GlobalVariable class.
+        """
+        dict_ = json.loads(self.global_variables)
+        return {
+            k: GlobalVariable.model_validate(v) for k, v in dict_.items()
+        }
+
+    def get_global_variable(self, name: str) -> Optional[GlobalVariable]:
+        """
+        Get a global variable by name.
+
+        Args:
+            name: The name of the global variable.
+
+        Returns:
+            The global variable with the given name, or None if it does not exist.
+        """
+        return self.global_variables_dict.get(name)
+
+    def update_global_variable(self, value: GlobalVariable):
+        """
+        Create or update a global variable.
+
+        Args:
+            value: The new value of the global variable.
+        """
+        name = value.name
+        global_variables = self.global_variables_dict
+        global_variables[name] = value
+        self.global_variables = json.dumps(global_variables)
+
+    def remove_global_variable(self, name: str):
+        """
+        Remove a global variable by name.
+
+        Args:
+            name: The name of the global variable.
+        """
+        global_variables = self.global_variables_dict
+        global_variables.pop(name, None)
+        self.global_variables = json.dumps(global_variables)
 
 class WorkflowRunTriggeredFrom(Enum):
     """
