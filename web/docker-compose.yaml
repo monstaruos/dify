@@ -7,7 +7,7 @@ networks:
 
 services:
   web:
-    image: nonroot-nodejs-${USERID:?set this like USERID=$$(id -u)}
+    image: dify-nodejs-nonroot-${USERID:?set this like USERID=$$(id -u)}
     build:
       context: .
       dockerfile: Dockerfile-dev

@@ -7,7 +7,7 @@ networks:
 
 services:
   api:
-    image: nonroot-python-${USERID:?set this like USERID=$$(id -u)}
+    image: dify-python-nonroot-${USERID:?set this like USERID=$$(id -u)}
     build:
       context: .
       dockerfile: Dockerfile-dev
