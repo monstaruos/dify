@@ -1,0 +1,35 @@
+identity:
+  name: scrape
+  author: Teruo OSHIDA
+  label:
+    en_US: Scrape
+description:
+  human:
+    en_US: Extract data from a website by scraping through a URL.
+  llm: This tool initiates a web scrape to extract data from a specified URL. It allows configuring scraper options such as returning only the main content of the page.
+parameters:
+  - name: url
+    type: string
+    required: true
+    label:
+      en_US: URL to scrape
+    human_description:
+      en_US: The URL of the website to scrape and extract data from.
+    llm_description: The URL of the website that needs to be scraped. This is a required parameter.
+    form: llm
+  - name: onlyMainContent
+    type: boolean
+    required: false
+    label:
+      en_US: Only return the main content of the page
+    human_description:
+      en_US: If enabled, the scraper will only return the main content of the page, excluding headers, navigation, footers, etc.
+    form: form
+    options:
+      - value: 'true'
+        label:
+          en_US: 'Yes'
+      - value: 'false'
+        label:
+          en_US: 'No'
+    default: 'false'
