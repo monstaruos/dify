@@ -11,7 +11,7 @@ services:
     environment:
       CONSOLE_API_URL: ${CONSOLE_API_URL:-}
       APP_API_URL: ${APP_API_URL:-}
-      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_DSN: ${WEB_SENTRY_DSN:-}
       NEXT_PUBLIC_DEPLOY_ENV: ${DEPLOY_ENV}
       NEXT_PUBLIC_EDITION: ${EDITION}
       NEXT_PUBLIC_API_PREFIX: ${CONSOLE_API_URL}/console/api
