@@ -1,0 +1,29 @@
+name: dify
+
+services:
+  web:
+    image: dify-nodejs-nonroot-${USERID:?set this like USERID=$$(id -u)}
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+      args:
+        - userid=${USERID}
+    environment:
+      CONSOLE_API_URL: ${CONSOLE_API_URL:-}
+      APP_API_URL: ${APP_API_URL:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_DEPLOY_ENV: ${DEPLOY_ENV}
+      NEXT_PUBLIC_EDITION: ${EDITION}
+      NEXT_PUBLIC_API_PREFIX: ${CONSOLE_API_URL}/console/api
+      NEXT_PUBLIC_PUBLIC_API_PREFIX: ${APP_API_URL}/api
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN}
+      NEXT_PUBLIC_SITE_ABOUT: ${SITE_ABOUT}
+    volumes:
+      - .:/home/developer/app
+    working_dir: /home/developer/app
+    command: bash -l -c "npm run start"
+
+networks:
+  default:
+    external: true
+    name: dify_middleware

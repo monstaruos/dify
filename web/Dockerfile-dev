@@ -1,0 +1,17 @@
+FROM node:20.11-alpine3.19
+
+ARG userid=1001
+ARG username=developer
+
+RUN apk update && \
+    apk add --no-cache sudo bash && \
+    addgroup -S privileged && \
+    echo '%privileged ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-privileged-users && \
+    chmod 440 /etc/sudoers.d/90-privileged-users
+RUN adduser -D -s /bin/bash -u $userid $username && \
+    adduser $username privileged
+
+USER $username
+WORKDIR /home/$username
+ENTRYPOINT []
+CMD [ "/bin/bash", "-l" ]

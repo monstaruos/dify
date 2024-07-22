@@ -1,0 +1,16 @@
+FROM python:3.10-slim-bookworm
+
+ARG userid=1001
+ARG username=developer
+
+RUN apt update && \
+    apt -y install sudo && \
+    groupadd -r privileged && \
+    echo '%privileged ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-privileged-users && \
+    chmod 440 /etc/sudoers.d/90-privileged-users
+RUN groupadd -g $userid $username && \
+    useradd -s /bin/bash -m -G privileged -g $username -u $userid $username
+
+USER $username
+WORKDIR /home/$username
+CMD [ "/bin/bash", "-l" ]
