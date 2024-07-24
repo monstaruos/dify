@@ -1,0 +1,9 @@
+services:
+  nginx:
+    image: nginx:1.27.0-alpine3.19-slim
+    restart: always
+    volumes:
+      - ./favicon/nginx/conf.d:/etc/nginx/conf.d
+      - ../web/public:/usr/share/nginx/html/public
+    ports:
+      - "80:80"
