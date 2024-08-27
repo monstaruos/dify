@@ -1,3 +1,7 @@
+x-shared-cfg: &shared-log-options
+  awslogs-region: ${AWSLOGS_REGION:?}
+  awslogs-stream: ${AWSLOGS_STREAM:?}
+
 x-shared-env: &shared-api-worker-env
   LOG_LEVEL: ${LOG_LEVEL:-INFO}
   LOG_FILE: ${LOG_FILE:-}
@@ -188,6 +192,11 @@ x-shared-env: &shared-api-worker-env
 services:
   # API service
   api:
+    logging:
+      driver: awslogs
+      options:
+        <<: *shared-log-options
+        awslogs-group: dify-api
     image: dify-api-local
     build:
       context: ../api
@@ -210,6 +219,11 @@ services:
   # worker service
   # The Celery worker for processing the queue.
   worker:
+    logging:
+      driver: awslogs
+      options:
+        <<: *shared-log-options
+        awslogs-group: dify-worker
     image: dify-api-local
     # build:
     #   context: ../api
@@ -231,6 +245,11 @@ services:
 
   # Frontend web application.
   web:
+    logging:
+      driver: awslogs
+      options:
+        <<: *shared-log-options
+        awslogs-group: dify-web
     image: dify-web-local
     build:
       context: ../web
@@ -243,6 +262,11 @@ services:
 
   # The postgres database.
   db:
+    logging:
+      driver: awslogs
+      options:
+        <<: *shared-log-options
+        awslogs-group: dify-db
     image: postgres:15-alpine
     restart: unless-stopped
     environment:
@@ -266,6 +290,11 @@ services:
 
   # The redis cache.
   redis:
+    logging:
+      driver: awslogs
+      options:
+        <<: *shared-log-options
+        awslogs-group: dify-redis
     image: redis:6-alpine
     restart: unless-stopped
     volumes:
@@ -278,6 +307,11 @@ services:
 
   # The DifySandbox
   sandbox:
+    logging:
+      driver: awslogs
+      options:
+        <<: *shared-log-options
+        awslogs-group: dify-sandbox
     image: langgenius/dify-sandbox:0.2.6
     restart: unless-stopped
     environment:
@@ -300,6 +334,11 @@ services:
   # for more information, please refer to
   # https://docs.dify.ai/learn-more/faq/self-host-faq#id-18.-why-is-ssrf_proxy-needed
   ssrf_proxy:
+    logging:
+      driver: awslogs
+      options:
+        <<: *shared-log-options
+        awslogs-group: dify-ssrf_proxy
     image: ubuntu/squid:latest
     restart: unless-stopped
     volumes:
@@ -340,6 +379,11 @@ services:
   # The nginx reverse proxy.
   # used for reverse proxying the API service and Web service.
   nginx:
+    logging:
+      driver: awslogs
+      options:
+        <<: *shared-log-options
+        awslogs-group: dify-nginx
     image: nginx:latest
     restart: unless-stopped
     volumes:
@@ -380,6 +424,11 @@ services:
 
   # The Weaviate vector store.
   weaviate:
+    logging:
+      driver: awslogs
+      options:
+        <<: *shared-log-options
+        awslogs-group: dify-weaviate
     image: semitechnologies/weaviate:1.19.0
     profiles:
       - ''
