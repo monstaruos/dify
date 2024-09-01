@@ -9,6 +9,7 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import NotFound
 
 from configs import dify_config
+from constants import ALLOWED_EXTENSIONS, IMAGE_EXTENSIONS, UNSTRUCTURED_ALLOWED_EXTENSIONS
 from core.file.upload_file_parser import UploadFileParser
 from core.rag.extractor.extract_processor import ExtractProcessor
 from extensions.ext_database import db
@@ -17,35 +18,13 @@ from models.account import Account
 from models.model import EndUser, UploadFile
 from services.errors.file import FileTooLargeError, UnsupportedFileTypeError
 
-IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "svg"]
-IMAGE_EXTENSIONS.extend([ext.upper() for ext in IMAGE_EXTENSIONS])
-
-ALLOWED_EXTENSIONS = ["txt", "markdown", "md", "pdf", "html", "htm", "xlsx", "xls", "docx", "csv"]
-UNSTRUCTURED_ALLOWED_EXTENSIONS = [
-    "txt",
-    "markdown",
-    "md",
-    "pdf",
-    "html",
-    "htm",
-    "xlsx",
-    "xls",
-    "docx",
-    "csv",
-    "eml",
-    "msg",
-    "pptx",
-    "ppt",
-    "xml",
-    "epub",
-]
-
 PREVIEW_WORDS_LIMIT = 3000
 
 
 class FileService:
     @staticmethod
     def upload_file(file: FileStorage, user: Union[Account, EndUser], only_image: bool = False) -> UploadFile:
+        # get file name
         filename = file.filename
         extension = file.filename.split(".")[-1]
         if len(filename) > 200:
@@ -67,16 +46,18 @@ class FileService:
         # get file size
         file_size = len(file_content)
 
+        # select file size limit
         if extension.lower() in IMAGE_EXTENSIONS:
             file_size_limit = dify_config.UPLOAD_IMAGE_FILE_SIZE_LIMIT * 1024 * 1024
         else:
             file_size_limit = dify_config.UPLOAD_FILE_SIZE_LIMIT * 1024 * 1024
 
+        # check if the file size is exceeded
         if file_size > file_size_limit:
             message = f"File size exceeded. {file_size} > {file_size_limit}"
             raise FileTooLargeError(message)
 
-        # user uuid as file name
+        # generate file key
         file_uuid = str(uuid.uuid4())
 
         if isinstance(user, Account):
