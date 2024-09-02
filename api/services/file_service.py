@@ -9,35 +9,40 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import NotFound
 
 from configs import dify_config
-from constants import ALLOWED_EXTENSIONS, IMAGE_EXTENSIONS, UNSTRUCTURED_ALLOWED_EXTENSIONS
+from constants import (
+    ALLOWED_EXTENSIONS,
+    AUDIO_EXTENSIONS,
+    IMAGE_EXTENSIONS,
+    UNSTRUCTURED_ALLOWED_EXTENSIONS,
+    VIDEO_EXTENSIONS,
+)
 from core.file.upload_file_parser import UploadFileParser
 from core.rag.extractor.extract_processor import ExtractProcessor
 from extensions.ext_database import db
 from extensions.ext_storage import storage
 from models.account import Account
 from models.model import EndUser, UploadFile
-from services.errors.file import FileTooLargeError, UnsupportedFileTypeError
+from services.errors.file import FileNotExistsError, FileTooLargeError, UnsupportedFileTypeError
 
 PREVIEW_WORDS_LIMIT = 3000
 
 
 class FileService:
     @staticmethod
-    def upload_file(file: FileStorage, user: Union[Account, EndUser], only_image: bool = False) -> UploadFile:
+    def upload_file(file: FileStorage, user: Union[Account, EndUser]) -> UploadFile:
         # get file name
         filename = file.filename
-        extension = file.filename.split(".")[-1]
+        if not filename:
+            raise FileNotExistsError
+        extension = filename.split(".")[-1]
         if len(filename) > 200:
             filename = filename.split(".")[0][:200] + "." + extension
-        etl_type = dify_config.ETL_TYPE
         allowed_extensions = (
-            UNSTRUCTURED_ALLOWED_EXTENSIONS + IMAGE_EXTENSIONS
-            if etl_type == "Unstructured"
-            else ALLOWED_EXTENSIONS + IMAGE_EXTENSIONS
+            UNSTRUCTURED_ALLOWED_EXTENSIONS if dify_config.ETL_TYPE == "Unstructured" else ALLOWED_EXTENSIONS
         )
-        if extension.lower() not in allowed_extensions:
-            raise UnsupportedFileTypeError()
-        elif only_image and extension.lower() not in IMAGE_EXTENSIONS:
+        allowed_extensions = allowed_extensions + IMAGE_EXTENSIONS + VIDEO_EXTENSIONS + AUDIO_EXTENSIONS
+
+        if extension not in allowed_extensions:
             raise UnsupportedFileTypeError()
 
         # read file content
@@ -47,8 +52,12 @@ class FileService:
         file_size = len(file_content)
 
         # select file size limit
-        if extension.lower() in IMAGE_EXTENSIONS:
+        if extension in IMAGE_EXTENSIONS:
             file_size_limit = dify_config.UPLOAD_IMAGE_FILE_SIZE_LIMIT * 1024 * 1024
+        elif extension in VIDEO_EXTENSIONS:
+            file_size_limit = dify_config.UPLOAD_VIDEO_FILE_SIZE_LIMIT * 1024 * 1024
+        elif extension in AUDIO_EXTENSIONS:
+            file_size_limit = dify_config.UPLOAD_AUDIO_FILE_SIZE_LIMIT * 1024 * 1024
         else:
             file_size_limit = dify_config.UPLOAD_FILE_SIZE_LIMIT * 1024 * 1024
 
